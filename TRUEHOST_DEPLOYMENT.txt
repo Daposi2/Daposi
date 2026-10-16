@@ -1,0 +1,93 @@
+================================================================================
+DAPOSI AGRICULTURAL PLATFORM - SUPABASE & TRUEHOST STATIC DEPLOYMENT GUIDE
+================================================================================
+
+Why this deployment works 100% on TrueHost cPanel:
+Because TrueHost cPanel firewall blocks outgoing MongoDB port 27017, using Supabase 
+connects directly from the user's browser over standard HTTPS (Port 443). 
+You DO NOT need a cPanel Node.js App anymore! Your entire frontend runs as pure 
+high-speed static files directly out of public_html.
+
+--------------------------------------------------------------------------------
+STEP 1: RUN THE SQL SCHEMA IN SUPABASE
+--------------------------------------------------------------------------------
+1. Go to https://supabase.com and open your project dashboard.
+2. In the left navigation menu, click on "SQL Editor".
+3. Click "+ New query".
+4. Open the file "supabase_schema.sql" included in this project, copy everything,
+   paste it into the SQL Editor, and click "Run" (or Ctrl + Enter).
+5. All 6 tables (profiles, pledges, get_helps, transactions, matches, messages), 
+   indexes, and security policies will be created instantly.
+
+--------------------------------------------------------------------------------
+STEP 2: CONFIGURE YOUR SUPABASE CREDENTIALS
+--------------------------------------------------------------------------------
+1. In your Supabase Dashboard, click on "Project Settings" (gear icon) -> "API".
+2. Copy:
+   - "Project URL" (e.g., https://yourprojectid.supabase.co)
+   - "anon public key" (starts with eyJhbGciOi...)
+3. In your project directory:
+   Create or edit the file named ".env":
+   
+   VITE_SUPABASE_URL=https://yourprojectid.supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
+
+   (Note: In supabaseClient.js, you can also paste your URL and Anon Key directly 
+   if you prefer hardcoding them into the static bundle).
+
+--------------------------------------------------------------------------------
+STEP 3: BUILD THE STATIC FRONTEND
+--------------------------------------------------------------------------------
+Open your terminal in the project directory and run:
+
+   npm run build
+
+This command compiles the entire React application into a single folder named:
+   dist/
+
+Inside "dist/", you will see:
+   - index.html
+   - assets/ (CSS and JS bundles)
+
+--------------------------------------------------------------------------------
+STEP 4: UPLOAD TO TRUEHOST CPANEL (PUBLIC_HTML)
+--------------------------------------------------------------------------------
+1. Log in to your TrueHost cPanel.
+2. Open "File Manager".
+3. Navigate into the "public_html" directory (or your subdomain directory e.g., daposi.com).
+4. If there are old default files (like cgi-bin, index.php), remove or backup them.
+5. Zip the contents of your "dist/" folder on your computer.
+6. Click "Upload" in cPanel File Manager and upload your zip file.
+7. Right-click the zip file in cPanel and click "Extract".
+   Make sure the index.html file is directly inside public_html (not public_html/dist/index.html).
+
+--------------------------------------------------------------------------------
+STEP 5: CONFIGURE CPANEL .HTACCESS FOR REACT ROUTING
+--------------------------------------------------------------------------------
+To make sure URLs like /dashboard, /auth, /admin refresh properly without 404 errors, 
+ensure a ".htaccess" file exists in public_html with the following content:
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+
+--------------------------------------------------------------------------------
+ADMIN LOGIN
+--------------------------------------------------------------------------------
+1. Go to: https://daposi.com/#/admin (or https://daposi.com/admin)
+2. Default Admin Credentials:
+   Username: Cobo#@
+   Password: Cob2026@$
+3. You can also sign up a real admin user via Supabase Auth with email admin@daposi.com 
+   and password Cob2026@$, then in Supabase SQL editor run:
+   UPDATE public.profiles SET role = 'admin' WHERE email = 'admin@daposi.com';
+
+--------------------------------------------------------------------------------
+DONE! Your DAPOSI platform is live on TrueHost, powered by Supabase with zero 
+backend hosting costs, zero port 27017 blockades, and ultra-fast static loading.
+================================================================================

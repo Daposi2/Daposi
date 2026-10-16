@@ -1,0 +1,6 @@
+{
+  "name": "SANTA",
+  "description": "SANTA P2P Investment Platform",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
